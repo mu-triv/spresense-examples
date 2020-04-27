@@ -20,5 +20,5 @@ void loop() {
   if (i == 0) {
     on = !on;
   }
-  delay(100);  
+  delay(250);  
 }
