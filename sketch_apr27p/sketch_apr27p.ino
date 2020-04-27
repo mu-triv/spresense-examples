@@ -21,7 +21,8 @@ nn_network_t *alloc_nnb_network(const char* bin_model, uint32_t model_size)
   return NULL;
 }
 
-
+const int px_heigh = 8;
+const int px_width = 8;
 
 void setup() {
 
@@ -61,7 +62,7 @@ void setup() {
   printf("float size = %d", sizeof(float));
   printf("\n");
 
-  const void *inputs[1] = { bin_infdata };
+  const float *inputs[1] = { (float*)bin_infdata + px_heigh * px_width * 0 };
   ret = dnn_runtime_forward(&rt, inputs, 1);
   if (ret) {
       printf("dnn_runtime_forward() failed due to %d\n", ret);
@@ -70,23 +71,31 @@ void setup() {
   printf("dnn_runtime_forward() succeeded\n");
 
   /* Step-D: obtain the output from this dnn_runtime_t */
+  int numbers[batch_size] = {-1e-10};
   float* output_buffer = dnn_runtime_output_buffer(&rt, 0u);
   for (int i = 0; i < batch_size; i++) {
     printf("[%d]: ", i);
     auto max_val = -1e-10;
-    int number = 0;
     for (int j = 0; j < 10; j++) {
       auto val = output_buffer[i * 10 + j];
       printf("%.4f", val);
       printf(" ");
       if (val >= max_val) {
         max_val = val;
-        number = j;
+        numbers[i] = j;
       }
     }
-    printf("%d", number);
     printf("\n");
   }
+
+  for (int i = 0; i < batch_size; i++) {
+    if ((i  % 8) == 0) {
+      printf("\n");
+    }
+    printf("%d", numbers[i]);
+    printf(" ");
+  }
+  printf("\n");
 
 fin_error:
   /* free memories allocated to dnn_runtime_t */
