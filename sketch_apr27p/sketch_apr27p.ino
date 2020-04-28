@@ -8,17 +8,14 @@ const char bin_infdata[] PROGMEM = {
 #include "data/img_64010808.h"  
 };
 
-nn_network_t *alloc_nnb_network(const char* bin_model, uint32_t model_size)
+nn_network_t *load_nnb_network(const char* bin_model)
 {
   assert(bin_model != NULL);
-  assert(model_size > 0) ;
   /* store content of nnb_file in heap memory */
-  nn_network_t *network = malloc(model_size);
-  if (network != NULL) {  
-    memcpy(network, bin_model, model_size);
-    return network;
-  }
-  return NULL;
+  nn_network_t *network = (nn_network_t*)bin_model;
+  printf("binary format version %d\n", network->version);
+  printf("function-level compatibility revision %d\n", network->revision); 
+  return network;
 }
 
 const int px_heigh = 8;
@@ -31,7 +28,7 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
 
-  nn_network_t *network = alloc_nnb_network(bin_model, sizeof(bin_model));
+  nn_network_t *network = load_nnb_network(bin_model);
   
   /* initialize the whole dnnrt subsystem */
   const dnn_config_t config = {.cpu_num = 1 };
@@ -62,7 +59,7 @@ void setup() {
   printf("float size = %d", sizeof(float));
   printf("\n");
 
-  const float *inputs[1] = { (float*)bin_infdata + px_heigh * px_width * 0 };
+  const void *inputs[1] = { (float*)bin_infdata + px_heigh * px_width * 0 };
   ret = dnn_runtime_forward(&rt, inputs, 1);
   if (ret) {
       printf("dnn_runtime_forward() failed due to %d\n", ret);
@@ -72,7 +69,7 @@ void setup() {
 
   /* Step-D: obtain the output from this dnn_runtime_t */
   int numbers[batch_size] = {-1e-10};
-  float* output_buffer = dnn_runtime_output_buffer(&rt, 0u);
+  float* output_buffer = dnn_runtime_output_buffer(&rt, 0);
   for (int i = 0; i < batch_size; i++) {
     printf("[%d]: ", i);
     auto max_val = -1e-10;
@@ -104,8 +101,6 @@ rt_error:
   /* finalize the whole dnnrt subsystem */
   dnn_finalize();
 dnn_error:
-  /* free model memory */
-  free(network);
   printf("Application finalized\n");
 }
 
