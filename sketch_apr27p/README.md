@@ -16,3 +16,6 @@ From Arduino IDE, click on the button __Upload__ .
 [This directory data](./data) contains C-style NNB model and inference dataset.
 * In order to understand how to generate the models, please refer to [this Jupyter Notebook](https://github.com/mu-triv/Nnabla-examples/blob/master/nbla_plays.ipynb#Convert-from-binary-NNB-to-C-style-NNB)
 * In order to understand how to generate the dataset, please refer to [this Jupyter Notebook](https://github.com/mu-triv/Nnabla-examples/blob/master/nbla_plays.ipynb#Convert-from-binary-raw-images-to-C-style-images)
+
+### Binary to C-style converter
+Please refer to this https://github.com/Jamesits/bin2array
