@@ -21,7 +21,9 @@ const char bin_model_softmax[] PROGMEM = {
 #include "data/simple_model_softmax.h"  
 };
 
-const float input_data[] = {-5,-2,0,4,6};
+const float input_data[] PROGMEM = {
+#include "data/test_data.h"  
+};
 
 const char* models[] = {
   bin_model_affine,
@@ -78,18 +80,23 @@ void setup() {
     
     nn_variable_t *in_var = dnn_runtime_input_variable(&rt, 0);
     printf("var type = %d (NN_DATA_TYPE_FLOAT=%d)\n", in_var->type, NN_DATA_TYPE_FLOAT);
-  
-    const void *inputs[1] = { (const void *)input_data };
-    ret = dnn_runtime_forward(&rt, inputs, 1);
-    if (ret) {
-        printf("dnn_runtime_forward() failed due to %d\n", ret);
-        goto fin_error;
-    }
-    printf("dnn_runtime_forward() succeeded\n");
-  
-    float* output_buffer = dnn_runtime_output_buffer(&rt, 0);
-    for (int i = 0; i < nbr_outputs; i++) {
-      printf("[output %d] %.4f\n", i, output_buffer[i]);
+
+    const int x_size = 5;
+    for (int j = 0; j <= sizeof(input_data)/sizeof(input_data[0])/x_size; j++) {
+      printf("dataset #%d", j);
+      printf("\n");
+      const void *inputs[1] = { (const void *)(input_data + x_size * j)};
+      ret = dnn_runtime_forward(&rt, inputs, 1);
+      if (ret) {
+          printf("dnn_runtime_forward() failed due to %d\n", ret);
+          goto fin_error;
+      }
+      printf("dnn_runtime_forward() succeeded\n");
+    
+      float* output_buffer = dnn_runtime_output_buffer(&rt, 0);
+      for (int k = 0; k < nbr_outputs; k++) {
+        printf("[output %d] %.4f\n", k, output_buffer[k]);
+      }
     }
   
   fin_error:
